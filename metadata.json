@@ -1,0 +1,6 @@
+{
+  "name": "GraceGate Task Management",
+  "description": "A high-fidelity mobile task management and to-do list application powered by GraceGate and GraceGate Technologies, designed with gorgeous purple aesthetics and seamless data sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
