@@ -19,8 +19,8 @@ import {
 
 interface PhoneEmulatorProps {
   onLogAdded: (msg: string) => void;
-  onScreenChange: (screen: 'onboarding' | 'dashboard' | 'calendar' | 'project' | 'groups') => void;
-  activeScreen: 'onboarding' | 'dashboard' | 'calendar' | 'project' | 'groups';
+  onScreenChange: (screen: 'onboarding' | 'dashboard' | 'calendar' | 'project' | 'groups' | 'settings') => void;
+  activeScreen: 'onboarding' | 'dashboard' | 'calendar' | 'project' | 'groups' | 'settings';
   onDataChange?: (groups: TaskGroup[], projects: Project[], tasks: Task[]) => void;
 }
 
@@ -30,6 +30,40 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   
+  // Dark mode appearance state
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Load theme preference from localStorage on boot
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('gracegate_dark_mode');
+    if (savedTheme === 'true') {
+      setIsDarkMode(true);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextVal = !isDarkMode;
+    setIsDarkMode(nextVal);
+    localStorage.setItem('gracegate_dark_mode', String(nextVal));
+    onLogAdded(`Theme settings: switched interface appearance to ${nextVal ? 'DARK THEME' : 'LIGHT THEME'}.`);
+  };
+
+  // Helper theme styles mapping
+  const t = {
+    bg: isDarkMode ? 'bg-[#0c0520]' : 'bg-[#FAF9FF]',
+    panelBg: isDarkMode ? 'bg-[#0f0724]' : 'bg-[#FAF9FF]',
+    cardBg: isDarkMode ? 'bg-[#180e3c] border-purple-950/40' : 'bg-white border-purple-100',
+    navBg: isDarkMode ? 'bg-[#12092e] border-purple-950/40' : 'bg-white border-purple-100/80',
+    titleText: isDarkMode ? 'text-white' : 'text-[#1a0f3d]',
+    primaryText: isDarkMode ? 'text-purple-100' : 'text-neutral-800',
+    neutralText: isDarkMode ? 'text-purple-200/90' : 'text-neutral-700',
+    subtitleText: isDarkMode ? 'text-purple-400/70' : 'text-neutral-400',
+    inputBg: isDarkMode ? 'bg-[#1a0e3f] border-[#291b5c] text-white placeholder-purple-300/40' : 'bg-white border-purple-100 text-neutral-800',
+    navHover: isDarkMode ? 'hover:bg-[#1a0e3f]' : 'hover:bg-purple-50',
+    dateBtnInactive: isDarkMode ? 'bg-[#150a36] text-purple-200 border-[#251752] hover:border-purple-800' : 'bg-white text-neutral-700 border-purple-100 hover:border-purple-300',
+    logoBtnInactive: isDarkMode ? 'bg-[#150a36] text-purple-200 border-[#251752] hover:border-purple-800' : 'bg-white text-neutral-600 border-purple-100 hover:border-purple-200',
+  };
+
   // App UI contexts
   const [selectedDay, setSelectedDay] = useState(25); // 25 is default
   const [taskFilter, setTaskFilter] = useState<'All' | 'To do' | 'In Progress' | 'Completed'>('All');
@@ -411,7 +445,7 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
         </div>
 
         {/* Screen inner content */}
-        <div className="w-full h-full rounded-[38px] bg-[#FAF9FF] overflow-hidden relative flex flex-col font-sans border border-purple-100 shadow-inner">
+        <div className={`w-full h-full rounded-[38px] overflow-hidden relative flex flex-col font-sans border shadow-inner ${isDarkMode ? 'bg-[#0f0724] border-[#251752]/50 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]' : 'bg-[#FAF9FF] border-purple-100'}`}>
           
           <AnimatePresence mode="wait">
             {/* ONBOARDING PANEL */}
@@ -422,14 +456,14 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="flex-1 flex flex-col justify-between p-6 pt-16 pb-12 bg-gradient-to-b from-[#FAF9FF] via-[#F4F1FF] to-[#ECE7FE] text-neutral-900"
+                className={`flex-1 flex flex-col justify-between p-6 pt-16 pb-12 text-neutral-900 ${isDarkMode ? 'bg-gradient-to-b from-[#11092b] via-[#160d36] to-[#0c051d] text-white' : 'bg-gradient-to-b from-[#FAF9FF] via-[#F4F1FF] to-[#ECE7FE] text-neutral-900'}`}
               >
                 {/* Branding Badge Floating */}
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-[10px] bg-purple-100 border border-purple-200 text-purple-600 font-extrabold px-3 py-1 rounded-full tracking-wider uppercase">
+                  <span className={`text-[10px] border font-extrabold px-3 py-1 rounded-full tracking-wider uppercase ${isDarkMode ? 'bg-purple-950/40 border-purple-800/40 text-purple-300' : 'bg-purple-100 border border-purple-200 text-purple-600'}`}>
                     Sponsored by GraceGate
                   </span>
-                  <span className="text-[8px] text-purple-500 font-bold uppercase tracking-wider mt-0.5">
+                  <span className={`text-[8px] font-bold uppercase tracking-wider mt-0.5 ${isDarkMode ? 'text-purple-400/80' : 'text-purple-500'}`}>
                     Powered by GraceGate Technologies
                   </span>
                 </div>
@@ -448,13 +482,13 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
 
                 {/* Typography copy match characters exactly */}
                 <div className="space-y-4 text-center px-2 mb-6">
-                  <h1 className="text-3xl font-extrabold text-[#1a0f3d] tracking-tight leading-tight font-display">
+                  <h1 className={`text-3xl font-extrabold tracking-tight leading-tight font-display ${t.titleText}`}>
                     GraceGate <br />
                     <span className="text-purple-600 font-black">Task Management</span>
                   </h1>
                   
                   {/* The exact requested subtitle with GraceGate powered reference keeping character spacing */}
-                  <p className="text-neutral-500 font-sans text-xs leading-relaxed max-w-sm mx-auto">
+                  <p className={`font-sans text-xs leading-relaxed max-w-sm mx-auto ${t.subtitleText}`}>
                     The premium high-fidelity mobile workspace designed for modern productivity. Sponsored by GraceGate &amp; Powered by GraceGate Technologies.
                   </p>
                 </div>
@@ -485,7 +519,7 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="flex-1 overflow-y-auto no-scrollbar pt-14 pb-18 flex flex-col bg-[#FAF9FF]"
+                className={`flex-1 overflow-y-auto no-scrollbar pt-14 pb-18 flex flex-col ${t.panelBg}`}
               >
                 {/* Header widget hello row */}
                 <div className="px-6 flex items-center justify-between mb-5">
@@ -498,13 +532,13 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                       />
                     </div>
                     <div>
-                      <span className="text-neutral-400 text-[10px] block uppercase tracking-wider font-semibold">Hello!</span>
-                      <h2 className="text-base font-bold text-[#1a0f3d] tracking-tight">{userName}</h2>
+                      <span className={`text-[10px] block uppercase tracking-wider font-semibold ${t.subtitleText}`}>Hello!</span>
+                      <h2 className={`text-base font-bold tracking-tight ${t.titleText}`}>{userName}</h2>
                     </div>
                   </div>
                   
                   <div className="relative">
-                    <button className="p-2.5 rounded-full bg-white border border-purple-100 text-purple-600 hover:bg-purple-50 transition cursor-pointer shadow-xs">
+                    <button className={`p-2.5 rounded-full transition cursor-pointer shadow-xs ${isDarkMode ? 'bg-[#180e3c] border border-purple-800/20 text-purple-400 hover:bg-purple-950' : 'bg-white border border-purple-100 text-purple-600 hover:bg-purple-50'}`}>
                       <Bell className="w-4 h-4" />
                     </button>
                     <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-pink-500 rounded-full"></span>
@@ -560,8 +594,8 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                 {/* In Progress Horizontal Carousel */}
                 <div className="mb-6">
                   <div className="px-6 flex items-center justify-between mb-3.5">
-                    <h3 className="text-sm font-black text-[#1a0f3d] tracking-tight">In Progress</h3>
-                    <span className="text-[10px] text-purple-600 font-extrabold uppercase">&bull; Active &bull;</span>
+                    <h3 className={`text-sm font-black tracking-tight ${t.titleText}`}>In Progress</h3>
+                    <span className={`text-[10px] font-extrabold uppercase ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>&bull; Active &bull;</span>
                   </div>
                   
                   <div className="flex gap-4 overflow-x-auto px-6 pb-2 no-scrollbar scroll-smooth snap-x">
@@ -570,22 +604,22 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                       return (
                         <div 
                           key={proj.id}
-                          className="w-[200px] bg-[#eef0ff] snap-start border border-purple-200/50 rounded-2xl p-4 shrink-0 flex flex-col justify-between h-[120px] shadow-sm hover:border-purple-300 transition"
+                          className={`w-[200px] snap-start border rounded-2xl p-4 shrink-0 flex flex-col justify-between h-[120px] shadow-sm transition ${isDarkMode ? 'bg-[#150a36] border-purple-950/40 text-white hover:border-purple-800' : 'bg-[#eef0ff] border-purple-200/50 text-neutral-800 hover:border-purple-300'}`}
                         >
                           <div>
-                            <span className="text-[9px] uppercase tracking-wider font-extrabold text-purple-600 block mb-1">
+                            <span className={`text-[9px] uppercase tracking-wider font-extrabold block mb-1 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
                               {groupName}
                             </span>
-                            <h4 className="text-xs font-bold text-neutral-800 line-clamp-2 leading-snug">
+                            <h4 className={`text-xs font-bold line-clamp-2 leading-snug ${t.primaryText}`}>
                               {proj.name}
                             </h4>
                           </div>
                           
                           <div className="flex items-center justify-between mt-2.5">
-                            <span className="text-[10px] text-neutral-500 font-mono">
+                            <span className={`text-[10px] font-mono ${t.subtitleText}`}>
                               {proj.logo_url}
                             </span>
-                            <span className="text-[9px] bg-amber-100 text-amber-700 font-black px-1.5 py-0.5 rounded-md uppercase">
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase ${isDarkMode ? 'bg-amber-950/40 text-amber-450 border border-amber-900/30' : 'bg-amber-100 text-amber-700'}`}>
                               In Progress
                             </span>
                           </div>
@@ -597,11 +631,11 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
 
                 {/* Task Groups Verticals count list */}
                 <div className="px-6 flex-1 flex flex-col">
-                  <div className="flex items-center justify-between mb-3.5">
-                    <h3 className="text-sm font-black text-[#1a0f3d] tracking-tight">Task Groups</h3>
+                  <div className="px-6 flex items-center justify-between mb-3.5 pl-0 pr-0">
+                    <h3 className={`text-sm font-black tracking-tight ${t.titleText}`}>Task Groups</h3>
                     <button 
                       onClick={() => onScreenChange('project')}
-                      className="text-xs text-purple-600 font-bold hover:underline cursor-pointer"
+                      className={`text-xs font-bold hover:underline cursor-pointer ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}
                     >
                       + Add Project
                     </button>
@@ -613,7 +647,7 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                       return (
                         <div 
                           key={group.id} 
-                          className="bg-white border border-purple-100 rounded-2xl p-4 flex items-center justify-between hover:shadow-md transition"
+                          className={`border rounded-2xl p-4 flex items-center justify-between hover:shadow-md transition ${t.cardBg}`}
                         >
                           <div className="flex items-center gap-3">
                             <div className={`p-2.5 rounded-xl ${group.color.split(' ')[0] || 'bg-purple-100'} ${group.color.split(' ')[1] || 'text-purple-600'}`}>
@@ -622,15 +656,15 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                               {group.icon_name === 'BookOpen' && <BookOpen className="w-4.5 h-4.5" />}
                             </div>
                             <div>
-                              <h4 className="text-xs font-bold text-[#1a0f3d]">{group.name}</h4>
-                              <p className="text-[11px] text-neutral-400 font-medium">{group.total_tasks} Tasks</p>
+                              <h4 className={`text-xs font-bold ${t.titleText}`}>{group.name}</h4>
+                              <p className={`text-[11px] font-medium ${t.subtitleText}`}>{group.total_tasks} Tasks</p>
                             </div>
                           </div>
 
                           {/* Percent complete status pill */}
                           <div className="flex items-center gap-2.5">
-                            <span className="text-[10px] text-neutral-500 font-mono font-bold">{percentage}%</span>
-                            <div className="w-12 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                            <span className={`text-[10px] font-mono font-bold ${t.subtitleText}`}>{percentage}%</span>
+                            <div className={`w-12 h-1.5 rounded-full overflow-hidden ${isDarkMode ? 'bg-purple-950' : 'bg-neutral-100'}`}>
                               <div className="h-full bg-purple-600 rounded-full" style={{ width: `${percentage}%` }}></div>
                             </div>
                           </div>
@@ -649,18 +683,18 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 overflow-y-auto no-scrollbar pt-14 pb-18 flex flex-col bg-[#FAF9FF]"
+                className={`flex-1 overflow-y-auto no-scrollbar pt-14 pb-18 flex flex-col ${t.panelBg}`}
               >
                 {/* Back button and calendar title */}
                 <div className="px-6 flex items-center justify-between mb-4.5">
                   <button 
                     onClick={() => onScreenChange('dashboard')} 
-                    className="p-1.5 rounded-full hover:bg-purple-100 text-neutral-700 transition cursor-pointer"
+                    className={`p-1.5 rounded-full transition cursor-pointer ${t.navHover} ${t.neutralText}`}
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <h2 className="text-base font-black text-[#1a0f3d]">Today's Tasks</h2>
-                  <div className="w-8"></div> {/* Balance spacer */}
+                  <h2 className={`text-base font-black ${t.titleText}`}>Today's Tasks</h2>
+                  <div className="w-8 flex justify-end"></div> {/* Balance spacer */}
                 </div>
 
                 {/* Horizontal Date picker selections matching original */}
@@ -680,8 +714,8 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                       }}
                       className={`flex-1 min-w-[50px] py-2.5 rounded-2xl flex flex-col items-center justify-center transition border ${
                         selectedDay === day.val
-                          ? 'bg-[#592be1] text-white border-transparent shadow-md'
-                          : 'bg-white text-neutral-700 border-purple-100 hover:border-purple-300'
+                          ? 'bg-[#592be1] text-white border-transparent shadow-md font-bold'
+                          : t.dateBtnInactive
                       }`}
                     >
                       <span className="text-xs font-black">{day.val}</span>
@@ -699,6 +733,8 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                       className={`py-1.5 px-4.5 rounded-full text-[10px] font-extrabold tracking-wide uppercase transition ${
                         taskFilter === f
                           ? 'bg-purple-600 text-white'
+                          : isDarkMode 
+                          ? 'bg-purple-950/45 text-purple-300 border border-purple-900/40 hover:bg-purple-950/70' 
                           : 'bg-purple-100/60 text-purple-700 border border-purple-200/40 hover:bg-purple-100'
                       }`}
                     >
@@ -709,7 +745,7 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
 
                 {/* Robust Sorting UI Tab */}
                 <div className="px-6 mb-5">
-                  <div className="bg-purple-100/50 p-1 rounded-xl flex items-center justify-between border border-purple-200/30">
+                  <div className={`p-1 rounded-xl flex items-center justify-between border ${isDarkMode ? 'bg-[#150a36] border-purple-900/20' : 'bg-purple-100/50 border-purple-200/30'}`}>
                     {(['Due Soon', 'Highest Priority', 'Recent'] as const).map(s => {
                       const isActive = taskSort === s;
                       return (
@@ -722,7 +758,9 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                           className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-center transition-all cursor-pointer ${
                             isActive 
                               ? 'bg-purple-600 text-white shadow-xs' 
-                              : 'text-purple-600/80 hover:text-purple-800 hover:bg-purple-100/30'
+                              : isDarkMode 
+                              ? 'text-purple-400/80 hover:text-purple-300 hover:bg-purple-950/30' 
+                              : 'text-purple-600/80 hover:text-[#1a0f3d] hover:bg-purple-100/20'
                           }`}
                         >
                           {s}
@@ -780,36 +818,36 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                       }
                       return 0;
                     })
-                    .map(t => (
+                    .map(item => (
                       <div 
-                        key={t.id}
-                        className="bg-white border border-purple-100 rounded-2xl p-4 flex flex-col justify-between hover:shadow-xs group duration-200 relative"
+                        key={item.id}
+                        className={`rounded-2xl p-4 flex flex-col justify-between hover:shadow-xs group duration-200 relative border ${t.cardBg}`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <button 
-                            onClick={() => toggleTaskStatus(t.id)}
+                            onClick={() => toggleTaskStatus(item.id)}
                             className="text-purple-600 hover:text-purple-800 transition pt-0.5 shrink-0"
                           >
-                            {t.status === 'done' ? (
+                            {item.status === 'done' ? (
                               <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-50" />
-                            ) : t.status === 'in-progress' ? (
+                            ) : item.status === 'in-progress' ? (
                               <Circle className="w-5 h-5 text-amber-500 fill-amber-50" />
                             ) : (
-                              <Circle className="w-5 h-5 text-purple-300 hover:text-purple-500" />
+                              <Circle className={`w-5 h-5 ${isDarkMode ? 'text-purple-700 hover:text-purple-500' : 'text-purple-300 hover:text-purple-500'}`} />
                             )}
                           </button>
 
                           <div className="flex-1 min-w-0">
-                            <span className="text-[8px] uppercase font-extrabold text-neutral-400 tracking-wider">
-                              {t.tag}
+                            <span className={`text-[8px] uppercase font-extrabold tracking-wider ${t.subtitleText}`}>
+                              {item.tag}
                             </span>
-                            <h4 className={`text-xs font-bold text-neutral-800 leading-snug break-words ${t.status === 'done' ? 'line-through text-neutral-400' : ''}`}>
-                              {t.title}
+                            <h4 className={`text-xs font-bold leading-snug break-words ${item.status === 'done' ? 'line-through text-neutral-500 opacity-60' : t.primaryText}`}>
+                              {item.title}
                             </h4>
                           </div>
 
                           <button 
-                            onClick={() => handleDeleteTask(t.id)}
+                            onClick={() => handleDeleteTask(item.id)}
                             className="text-neutral-300 hover:text-pink-600 transition shrink-0 self-center"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -817,33 +855,33 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                         </div>
 
                         {/* Card bottom info tag-stats matching the design aesthetics */}
-                        <div className="flex items-center justify-between border-t border-purple-50/60 mt-2.5 pt-2 text-[10px] text-neutral-500">
+                        <div className={`flex items-center justify-between border-t mt-2.5 pt-2 text-[10px] ${isDarkMode ? 'border-purple-950/45 text-purple-300' : 'border-purple-50/60 text-neutral-500'}`}>
                           <div className="flex items-center gap-1.5">
                             <span className="flex items-center gap-1 font-mono text-[9px]">
                               <Clock className="w-3" />
-                              {t.time}
+                              {item.time}
                             </span>
-                            {t.priority && (
+                            {item.priority && (
                               <span className={`text-[8px] uppercase font-black px-1.5 py-0.5 rounded-sm ${
-                                t.priority === 'high' 
-                                  ? 'bg-[#ffeef2] text-rose-600 border border-rose-200/30' 
-                                  : t.priority === 'medium'
-                                  ? 'bg-[#fff7e6] text-amber-600 border border-amber-200/30'
-                                  : 'bg-[#eefcf5] text-emerald-600 border border-emerald-200/30'
+                                item.priority === 'high' 
+                                  ? isDarkMode ? 'bg-rose-950/30 text-rose-450 border border-rose-900/10' : 'bg-[#ffeef2] text-rose-600 border border-rose-200/30' 
+                                  : item.priority === 'medium'
+                                  ? isDarkMode ? 'bg-amber-950/30 text-amber-400 border border-amber-900/10' : 'bg-[#fff7e6] text-amber-600 border border-amber-200/30'
+                                  : isDarkMode ? 'bg-emerald-950/30 text-emerald-400 border border-emerald-900/10' : 'bg-[#eefcf5] text-emerald-600 border border-emerald-200/30'
                               }`}>
-                                {t.priority}
+                                {item.priority}
                               </span>
                             )}
                           </div>
                           
                           <span className={`text-[8px] uppercase font-black px-2 py-0.5 rounded-md ${
-                            t.status === 'done' 
-                              ? 'bg-emerald-100 text-emerald-700' 
-                              : t.status === 'in-progress'
-                              ? 'bg-amber-100 text-amber-700'
-                              : 'bg-purple-100 text-purple-700'
+                            item.status === 'done' 
+                              ? isDarkMode ? 'bg-emerald-950/30 text-emerald-450 border border-emerald-900/10' : 'bg-emerald-100 text-emerald-700' 
+                              : item.status === 'in-progress'
+                              ? isDarkMode ? 'bg-amber-950/30 text-amber-450 border border-amber-900/10' : 'bg-amber-100 text-amber-700'
+                              : isDarkMode ? 'bg-purple-950/40 text-purple-400 border border-purple-900/10' : 'bg-purple-100 text-purple-700'
                           }`}>
-                            {t.status === 'done' ? 'Completed' : t.status === 'in-progress' ? 'In Progress' : 'To do'}
+                            {item.status === 'done' ? 'Completed' : item.status === 'in-progress' ? 'In Progress' : 'To do'}
                           </span>
                         </div>
                       </div>
@@ -865,17 +903,17 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 overflow-y-auto no-scrollbar pt-14 pb-18 flex flex-col bg-[#FAF9FF]"
+                className={`flex-1 overflow-y-auto no-scrollbar pt-14 pb-18 flex flex-col ${t.panelBg}`}
               >
                 {/* Back and Title Header */}
                 <div className="px-6 flex items-center justify-between mb-4.5">
                   <button 
                     onClick={() => onScreenChange('dashboard')} 
-                    className="p-1.5 rounded-full hover:bg-purple-100 text-neutral-700 transition"
+                    className={`p-1.5 rounded-full transition ${t.navHover} ${t.neutralText}`}
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <h2 className="text-base font-black text-[#1a0f3d]">Add Project</h2>
+                  <h2 className={`text-base font-black ${t.titleText}`}>Add Project</h2>
                   <div className="w-8"></div>
                 </div>
 
@@ -883,11 +921,11 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                   
                   {/* Category Group Selector dropdown simulation */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-neutral-400 uppercase block">Task Group Category</label>
+                    <label className={`text-[10px] font-black uppercase block ${t.subtitleText}`}>Task Group Category</label>
                     <select 
                       value={selectedFormGroup} 
                       onChange={(e) => setSelectedFormGroup(e.target.value)}
-                      className="w-full bg-white border border-purple-100 text-neutral-800 text-xs rounded-xl p-3 focus:outline-shadow"
+                      className={`w-full text-xs rounded-xl p-3 focus:outline-shadow font-semibold border ${t.inputBg}`}
                     >
                       {taskGroups.map(g => (
                         <option key={g.id} value={g.id}>{g.name}</option>
@@ -897,54 +935,54 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
 
                   {/* Project Title Text field */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-neutral-400 uppercase block font-display">Project Name</label>
+                    <label className={`text-[10px] font-black uppercase block font-display ${t.subtitleText}`}>Project Name</label>
                     <input 
                       type="text" 
                       placeholder="e.g. Grocery Shopping App"
                       value={formProjName}
                       onChange={(e) => setFormProjName(e.target.value)}
-                      className="w-full bg-white border border-purple-100 text-neutral-800 text-xs rounded-xl p-3 focus:outline-shadow font-semibold"
+                      className={`w-full text-xs rounded-xl p-3 focus:outline-shadow font-semibold border ${t.inputBg}`}
                       required
                     />
                   </div>
 
                   {/* Description text area */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-neutral-400 uppercase block font-display">Description Details</label>
+                    <label className={`text-[10px] font-black uppercase block font-display ${t.subtitleText}`}>Description Details</label>
                     <textarea 
                       placeholder="Enter specific features or guidelines of the project..."
                       rows={4}
                       value={formProjDesc}
                       onChange={(e) => setFormProjDesc(e.target.value)}
-                      className="w-full bg-white border border-purple-100 text-neutral-800 text-xs rounded-xl p-3 focus:outline-shadow resize-none leading-relaxed"
+                      className={`w-full text-xs rounded-xl p-3 border resize-none leading-relaxed font-semibold ${t.inputBg}`}
                     />
                   </div>
 
                   {/* Starts and Ends date range fields */}
                   <div className="grid grid-cols-2 gap-3.5">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black text-neutral-400 uppercase block">Start Date</label>
+                      <label className={`text-[10px] font-black uppercase block ${t.subtitleText}`}>Start Date</label>
                       <input 
                         type="text" 
                         value={formStartDate}
                         onChange={(e) => setFormStartDate(e.target.value)}
-                        className="w-full bg-white border border-purple-100 text-neutral-800 text-xs rounded-xl p-3 text-center"
+                        className={`w-full text-xs rounded-xl p-3 text-center border font-semibold ${t.inputBg}`}
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black text-neutral-400 uppercase block">End Date</label>
+                      <label className={`text-[10px] font-black uppercase block ${t.subtitleText}`}>End Date</label>
                       <input 
                         type="text" 
                         value={formEndDate}
                         onChange={(e) => setFormEndDate(e.target.value)}
-                        className="w-full bg-white border border-purple-100 text-[#1a0f3d] text-xs rounded-xl p-3 text-center"
+                        className={`w-full text-xs rounded-xl p-3 text-center border font-semibold ${t.inputBg}`}
                       />
                     </div>
                   </div>
 
                   {/* Logo Emoji Selector Selection Row */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-neutral-400 uppercase block">Project Theme Logo representation</label>
+                    <label className={`text-[10px] font-black uppercase block ${t.subtitleText}`}>Project Theme Logo representation</label>
                     <div className="flex gap-2">
                       {[
                         { icon: '🛒 Grocery shop', bg: 'bg-green-100 text-green-700' },
@@ -959,7 +997,7 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                           className={`flex-1 py-2 px-1 text-[10px] rounded-xl font-bold flex flex-col items-center gap-1 border transition ${
                             formLogo === logo.icon
                               ? 'bg-purple-600 text-white border-transparent'
-                              : 'bg-white text-neutral-600 border-purple-100 hover:border-purple-200'
+                              : t.logoBtnInactive
                           }`}
                         >
                           <span className="text-sm">{logo.icon.split(' ')[0]}</span>
@@ -987,18 +1025,18 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 overflow-y-auto no-scrollbar pt-14 pb-18 flex flex-col bg-[#FAF9FF]"
+                className={`flex-1 overflow-y-auto no-scrollbar pt-14 pb-18 flex flex-col ${t.panelBg}`}
               >
                 {/* Title */}
                 <div className="px-6 flex items-center justify-between mb-4.5">
-                  <h2 className="text-base font-black text-[#1a0f3d]">GraceGate Workgroups</h2>
-                  <span className="text-[9px] bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-widest font-mono">
+                  <h2 className={`text-base font-black ${t.titleText}`}>GraceGate Workgroups</h2>
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest font-mono ${isDarkMode ? 'bg-purple-950 text-purple-300 border border-purple-900/10' : 'bg-purple-100 text-purple-700'}`}>
                     Overview
                   </span>
                 </div>
 
                 <div className="px-6 space-y-4">
-                  <p className="text-xs text-neutral-500 leading-relaxed">
+                  <p className={`text-xs leading-relaxed ${t.subtitleText}`}>
                     Welcome to GraceGate client workspaces database. View summary of project statistics connected dynamically to Supabase logic.
                   </p>
 
@@ -1006,26 +1044,26 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                     {taskGroups.map(g => {
                       const percentage = g.total_tasks > 0 ? Math.round((g.completed_tasks / g.total_tasks) * 100) : 0;
                       return (
-                        <div key={g.id} className="bg-white border border-purple-100 rounded-2xl p-5 space-y-3 shadow-xs">
+                        <div key={g.id} className={`rounded-2xl p-5 space-y-3 shadow-xs border ${t.cardBg}`}>
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-extrabold text-[#1a0f3d]">{g.name}</span>
-                            <span className="font-mono text-[10px] font-bold text-purple-600">{percentage}% completed</span>
+                            <span className={`text-xs font-extrabold ${t.titleText}`}>{g.name}</span>
+                            <span className={`font-mono text-[10px] font-bold ${isDarkMode ? 'text-purple-400 font-black' : 'text-purple-600'}`}>{percentage}% completed</span>
                           </div>
 
                           {/* Progress slider bar colored */}
-                          <div className="w-full h-2.5 bg-purple-50 rounded-full overflow-hidden">
+                          <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDarkMode ? 'bg-purple-950/40' : 'bg-purple-50'}`}>
                             <div className="h-full bg-[#6a42f4]" style={{ width: `${percentage}%` }}></div>
                           </div>
 
                           {/* Detail info grids */}
-                          <div className="grid grid-cols-2 gap-4 text-[11px] pt-1.5 border-t border-purple-50">
+                          <div className={`grid grid-cols-2 gap-4 text-[11px] pt-1.5 border-t ${isDarkMode ? 'border-purple-950/45' : 'border-purple-50'}`}>
                             <div>
-                              <span className="text-neutral-400 block uppercase text-[8px] font-black">Open Tasks</span>
-                              <span className="font-bold text-neutral-700">{Math.max(0, g.total_tasks - g.completed_tasks)} Open items</span>
+                              <span className={`block uppercase text-[8px] font-black ${t.subtitleText}`}>Open Tasks</span>
+                              <span className={`font-bold ${t.primaryText}`}>{Math.max(0, g.total_tasks - g.completed_tasks)} Open items</span>
                             </div>
                             <div>
-                              <span className="text-neutral-400 block uppercase text-[8px] font-black">Finished</span>
-                              <span className="font-bold text-neutral-700">{g.completed_tasks} Completed</span>
+                              <span className={`block uppercase text-[8px] font-black ${t.subtitleText}`}>Finished</span>
+                              <span className={`font-bold ${t.primaryText}`}>{g.completed_tasks} Completed</span>
                             </div>
                           </div>
                         </div>
@@ -1033,8 +1071,8 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                     })}
                   </div>
 
-                  <div className="p-4 bg-purple-50/50 border border-purple-100 rounded-2xl flex items-start gap-2.5 text-[11px] text-[#592be1]">
-                    <Clock className="w-4 h-4 mt-0.5 shrink-0" />
+                  <div className={`p-4 rounded-2xl flex items-start gap-2.5 text-[11px] border ${isDarkMode ? 'bg-[#180e3c]/20 border-purple-950/40 text-purple-300' : 'bg-purple-50/50 border border-purple-100 text-[#592be1]'}`}>
+                    <Clock className="w-4 h-4 mt-0.5 shrink-0 animate-pulse" />
                     <p className="leading-relaxed">
                       Need custom custom labels or teams? Write them directly using our Supabase panel SQL code runner to synchronize columns in real-time.
                     </p>
@@ -1043,11 +1081,153 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
               </motion.div>
             )}
 
+            {/* SETTINGS PANEL WITH THEME TOGGLE */}
+            {activeScreen === 'settings' && (
+              <motion.div 
+                key="settings"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className={`flex-1 overflow-y-auto no-scrollbar pt-14 pb-18 flex flex-col ${t.panelBg}`}
+              >
+                {/* Header widget */}
+                <div className="px-6 flex items-center justify-between mb-4.5">
+                  <button 
+                    onClick={() => onScreenChange('dashboard')} 
+                    className={`p-1.5 rounded-full transition cursor-pointer ${t.navHover} ${t.neutralText}`}
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <h2 className={`text-base font-black ${t.titleText}`}>Settings</h2>
+                  <div className="w-8"></div>
+                </div>
+
+                {/* Profile Overview */}
+                <div className="px-6 mb-5">
+                  <div className={`p-4 rounded-2xl flex items-center gap-3.5 border ${t.cardBg}`}>
+                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-500/40">
+                      <img 
+                        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" 
+                        alt="Profile avatar User" 
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                    <div>
+                      <h3 className={`text-xs font-black ${t.titleText}`}>{userName}</h3>
+                      <p className={`text-[10px] font-medium ${t.subtitleText}`}>gracefrancis0895@gmail.com</p>
+                      <span className="inline-block mt-1 text-[8px] bg-purple-600 text-white font-extrabold px-1.5 py-0.5 rounded font-sans uppercase">
+                        Lead Designer
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Appearance Settings Container */}
+                <div className="px-6 mb-5">
+                  <div className={`p-4 rounded-2xl border space-y-3.5 ${t.cardBg}`}>
+                    <label className={`text-[10px] font-black uppercase tracking-wider ${t.subtitleText}`}>Appearance</label>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <span className={`text-[#592be1] h-8 w-8 rounded-full flex items-center justify-center transition ${isDarkMode ? 'text-purple-400 bg-purple-950/40' : 'bg-purple-100'}`}>
+                          {isDarkMode ? '🌙' : '☀️'}
+                        </span>
+                        <div>
+                          <span className={`text-[11px] font-bold block ${t.primaryText}`}>Dark Slate Theme</span>
+                          <span className={`text-[9px] block ${t.subtitleText}`}>Dim background and card palettes</span>
+                        </div>
+                      </div>
+
+                      {/* Premium Toggle Switch Button */}
+                      <button 
+                        type="button"
+                        onClick={toggleTheme}
+                        className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 cursor-pointer flex items-center ${isDarkMode ? 'bg-purple-600 justify-end' : 'bg-neutral-200 justify-start'}`}
+                      >
+                        <motion.div 
+                          layout
+                          className="w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                        >
+                          <span className="text-[8px]">{isDarkMode ? '🌙' : '☀️'}</span>
+                        </motion.div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* General Settings Switches */}
+                <div className="px-6 mb-5">
+                  <div className={`p-4 rounded-2xl border space-y-3.5 ${t.cardBg}`}>
+                    <label className={`text-[10px] font-black uppercase tracking-wider ${t.subtitleText}`}>Preferences</label>
+
+                    {/* Sync indicator */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div>
+                        <span className={`text-[11px] font-bold block ${t.primaryText}`}>Persistent Cache</span>
+                        <span className={`text-[9px] block ${t.subtitleText}`}>Keep data stored locally across reloads</span>
+                      </div>
+                      <span className="text-[8px] bg-emerald-100 text-emerald-700 font-extrabold px-1.5 py-0.5 rounded-md uppercase font-sans">
+                        ACTIVE
+                      </span>
+                    </div>
+
+                    <div className="border-t border-purple-950/20 my-2"></div>
+
+                    {/* Sound toggle simulator */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className={`text-[11px] font-bold block ${t.primaryText}`}>Play Sound Effects</span>
+                        <span className={`text-[9px] block ${t.subtitleText}`}>Audio feedback on completion events</span>
+                      </div>
+                      <button className="w-9 h-5 rounded-full bg-purple-600/30 p-0.5 flex items-center justify-end">
+                        <div className="w-4 h-4 bg-purple-600 rounded-full"></div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* System Specs Settings Container */}
+                <div className="px-6 mb-6">
+                  <div className={`p-4 rounded-2xl border space-y-3.5 ${t.cardBg}`}>
+                    <label className={`text-[10px] font-black uppercase tracking-wider ${t.subtitleText}`}>Developer Node Details</label>
+                    <div className="text-[10px] space-y-1.5 font-mono leading-relaxed">
+                      <div className="flex justify-between">
+                        <span className={t.subtitleText}>Engine:</span>
+                        <span className={`font-semibold ${t.neutralText}`}>React 18 + Vite SPA</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={t.subtitleText}>Prototype ID:</span>
+                        <span className={`font-semibold ${t.neutralText}`}>GraceGate_Mobile_v2.6</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={t.subtitleText}>DB Adapter:</span>
+                        <span className={`font-semibold ${t.neutralText}`}>PostgreSQL Supabase API</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Premium Log Out CTA inside Settings screen */}
+                <div className="px-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onScreenChange('onboarding');
+                      onLogAdded("Welcome wizard started. Switched workspace view to onboarding registry.");
+                    }}
+                    className="w-full bg-[#fae8ff] hover:bg-[#f5d0fe] text-fuchsia-700 text-xs font-black py-3 rounded-2xl cursor-pointer transition uppercase tracking-wider text-center"
+                  >
+                    Log Out Workstation
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
           </AnimatePresence>
 
           {/* SATELLITE FLOATING TAB BAR NAVIGATION SYSTEM MATCHING DESIGN */}
           {activeScreen !== 'onboarding' && (
-            <div className="absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-purple-100/80 px-4.5 flex items-center justify-between z-30 shadow-2xl">
+            <div className={`absolute bottom-0 left-0 right-0 h-16 border-t px-4.5 flex items-center justify-between z-30 shadow-2xl transition-colors duration-200 ${t.navBg}`}>
               
               <button 
                 onClick={() => {
@@ -1055,7 +1235,7 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                   onLogAdded("Bottom nav: switched workspace registry view to primary Dashboard.");
                 }}
                 className={`py-1.5 px-3 flex flex-col items-center cursor-pointer transition ${
-                  activeScreen === 'dashboard' ? 'text-purple-600 font-bold' : 'text-neutral-400 hover:text-purple-400'
+                  activeScreen === 'dashboard' ? 'text-purple-600 font-bold font-sans' : isDarkMode ? 'text-purple-400/80 hover:text-purple-300' : 'text-neutral-400 hover:text-purple-400'
                 }`}
               >
                 <LayoutGrid className="w-5 h-5" />
@@ -1068,7 +1248,7 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                   onLogAdded("Bottom nav: switched workspace registry view to Today's Tasks & Calendar.");
                 }}
                 className={`py-1.5 px-3 flex flex-col items-center cursor-pointer transition ${
-                  activeScreen === 'calendar' ? 'text-purple-600 font-bold' : 'text-neutral-400 hover:text-purple-400'
+                  activeScreen === 'calendar' ? 'text-purple-600 font-bold font-sans' : isDarkMode ? 'text-purple-400/80 hover:text-purple-300' : 'text-neutral-400 hover:text-purple-400'
                 }`}
               >
                 <Calendar className="w-5 h-5" />
@@ -1095,7 +1275,7 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
                   onLogAdded("Bottom nav: switched registry preview focus to general TaskGroups stats summary.");
                 }}
                 className={`py-1.5 px-3 flex flex-col items-center cursor-pointer transition ${
-                  activeScreen === 'groups' ? 'text-purple-600 font-bold' : 'text-neutral-400 hover:text-purple-400'
+                  activeScreen === 'groups' ? 'text-purple-600 font-bold font-sans' : isDarkMode ? 'text-purple-400/80 hover:text-purple-300' : 'text-neutral-400 hover:text-purple-400'
                 }`}
               >
                 <Folder className="w-5 h-5" />
@@ -1104,14 +1284,16 @@ export default function PhoneEmulator({ onLogAdded, onScreenChange, activeScreen
 
               <button 
                 onClick={() => {
-                  onScreenChange('onboarding');
-                  onLogAdded("System reset: returned workflow wizard to landing Welcome onboarding frame.");
+                  onScreenChange('settings');
+                  onLogAdded("Bottom nav: switched workspace registry focus to settings customization.");
                 }}
-                className={`py-1.5 px-3 flex flex-col items-center cursor-pointer transition hover:text-purple-400 text-neutral-400`}
-                title="Log out to welcome screen"
+                className={`py-1.5 px-3 flex flex-col items-center cursor-pointer transition ${
+                  activeScreen === 'settings' ? 'text-purple-600 font-bold font-sans' : isDarkMode ? 'text-purple-400/80 hover:text-purple-300' : 'text-neutral-400 hover:text-purple-400'
+                }`}
+                title="Settings & Theme Configuration"
               >
-                <ChevronLeft className="w-5 h-5" />
-                <span className="text-[8px] font-semibold mt-0.5">Logout</span>
+                <Settings className="w-5 h-5" />
+                <span className="text-[8px] font-semibold mt-0.5">Settings</span>
               </button>
 
             </div>

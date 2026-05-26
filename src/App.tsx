@@ -25,7 +25,7 @@ export default function App() {
   });
 
   const [syncLogs, setSyncLogs] = useState<string[]>([]);
-  const [currentScreen, setCurrentScreen] = useState<'onboarding' | 'dashboard' | 'calendar' | 'project' | 'groups'>('onboarding');
+  const [currentScreen, setCurrentScreen] = useState<'onboarding' | 'dashboard' | 'calendar' | 'project' | 'groups' | 'settings'>('onboarding');
 
   // Shared statistics for Bento widgets
   const [liveGroups, setLiveGroups] = useState<TaskGroup[]>([]);
